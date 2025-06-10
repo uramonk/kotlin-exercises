@@ -16,7 +16,11 @@ var continuation: Continuation<String>? = null
 
 suspend fun continuationSteal(console: Console) {
     console.println("Before")
-    // TODO
+    // continuation.resumeすると値が返ってくる
+    val text = suspendCancellableCoroutine { cont ->
+        continuation = cont
+    }
+    console.println(text)
     console.println("After")
 }
 
@@ -24,17 +28,17 @@ interface Console {
     fun println(text: Any?)
 }
 
-fun main(): Unit = runBlocking<Unit> {
-    launch {
-        continuationSteal(object : Console {
-            override fun println(text: Any?) {
-                kotlin.io.println(text)
-            }
-        })
-    }
-    delay(1000)
-    continuation?.resume("This is some text")
-}
+//fun main(): Unit = runBlocking<Unit> {
+//    launch {
+//        continuationSteal(object : Console {
+//            override fun println(text: Any?) {
+//                kotlin.io.println(text)
+//            }
+//        })
+//    }
+//    delay(1000)
+//    continuation?.resume("This is some text")
+//}
 // Before
 // (1 sec)
 // This is some text
