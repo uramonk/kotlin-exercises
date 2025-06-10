@@ -16,9 +16,28 @@ class FetchTasksUseCase(
 ) {
     @Throws(ApiException::class)
     suspend fun fetchTasks(): List<Task> =
-        TODO()
+        suspendCancellableCoroutine<List<Task>> { continuation ->
+            val cancellable = callbackUseCase.fetchTasks(
+                { it -> continuation.resume(it) },
+                { it -> continuation.resumeWithException(it) })
+            continuation.invokeOnCancellation { cancellable.cancel() }
+        }
+
     suspend fun fetchTasksResult(): Result<List<Task>> =
-        TODO()
+        suspendCancellableCoroutine<Result<List<Task>>> { continuation ->
+            val cancellable = callbackUseCase.fetchTasks(
+                { it -> continuation.resume(Result.success(it)) },
+                { it -> continuation.resume(Result.failure(it)) })
+            continuation.invokeOnCancellation { cancellable.cancel() }
+        }
+
+    suspend fun fetchTasksOrNull(): List<Task>? =
+        suspendCancellableCoroutine<List<Task>?> { continuation ->
+            val cancellable = callbackUseCase.fetchTasks(
+                { it -> continuation.resume(it) },
+                { it -> continuation.resume(null) })
+            continuation.invokeOnCancellation { cancellable.cancel() }
+        }
 }
 
 interface FetchTasksCallbackUseCase {
@@ -31,8 +50,9 @@ interface FetchTasksCallbackUseCase {
 fun interface Cancellable {
     fun cancel()
 }
+
 data class Task(val name: String, val priority: Int)
-class ApiException(val code: Int, message: String): Throwable(message)
+class ApiException(val code: Int, message: String) : Throwable(message)
 
 class FetchTasksTests {
     val someTasks = listOf(Task("1", 123), Task("2", 456))
@@ -166,10 +186,72 @@ class FetchTasksTests {
         assertEquals(true, cancelled)
     }
 
-    class FakeFetchTasksCallbackUseCase: FetchTasksCallbackUseCase {
+    @Test
+    fun `fetchTasksOrNull should resume with result`() = runTest {
+        // given
+        val fakeFetchTaskCallback = FakeFetchTasksCallbackUseCase()
+        val useCase = FetchTasksUseCase(fakeFetchTaskCallback)
+        val NO_VALUE = Any()
+        var result: Any? = NO_VALUE
+
+        // when
+        launch {
+            result = useCase.fetchTasksOrNull()
+        }
+
+        // then
+        runCurrent()
+        assertEquals(NO_VALUE, result)
+        fakeFetchTaskCallback.onSuccess?.invoke(someTasks)
+        runCurrent()
+        assertEquals(someTasks, result)
+    }
+
+    @Test
+    fun `fetchTasksOrNull should resume with failure`() = runTest {
+        // given
+        val fakeFetchTaskCallback = FakeFetchTasksCallbackUseCase()
+        val useCase = FetchTasksUseCase(fakeFetchTaskCallback)
+        val NO_VALUE = Any()
+        var result: Any? = NO_VALUE
+
+        // when
+        launch {
+            result = useCase.fetchTasksOrNull()
+        }
+
+        // then
+        runCurrent()
+        assertEquals(NO_VALUE, result)
+        fakeFetchTaskCallback.onError?.invoke(someException)
+        runCurrent()
+        assertEquals(null, result)
+    }
+
+    @Test
+    fun `fetchTasksOrNull should support cancellation`() = runTest {
+        // given
+        val fakeFetchTaskCallback = FakeFetchTasksCallbackUseCase()
+        val useCase = FetchTasksUseCase(fakeFetchTaskCallback)
+        var cancelled = false
+        fakeFetchTaskCallback.onCancelled = { cancelled = true }
+
+        // when
+        val job = launch {
+            useCase.fetchTasksOrNull()
+        }
+
+        // then
+        runCurrent()
+        assertEquals(false, cancelled)
+        job.cancel()
+        assertEquals(true, cancelled)
+    }
+
+    class FakeFetchTasksCallbackUseCase : FetchTasksCallbackUseCase {
         var onSuccess: ((List<Task>) -> Unit)? = null
         var onError: ((Throwable) -> Unit)? = null
-        var onCancelled: (()->Unit)? = null
+        var onCancelled: (() -> Unit)? = null
 
         override fun fetchTasks(onSuccess: (List<Task>) -> Unit, onError: (Throwable) -> Unit): Cancellable {
             this.onSuccess = onSuccess
