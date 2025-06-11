@@ -12,7 +12,29 @@ class UserDetailsRepository(
     private val backgroundScope: CoroutineScope,
 ) {
     suspend fun getUserDetails(): UserDetails {
-        TODO()
+        val existUserAsync = backgroundScope.async {
+            userDatabase.load()
+        }
+        val existUser = existUserAsync.await();
+        if (existUser != null) {
+            return existUser
+        }
+        val friendsAsync = backgroundScope.async {
+            client.getFriends()
+        }
+        val nameAsync = backgroundScope.async {
+            client.getName()
+        }
+        val profileAsync = backgroundScope.async {
+            client.getProfile()
+        }
+        val newUser = UserDetails(nameAsync.await(), friendsAsync.await(), profileAsync.await())
+
+        backgroundScope.launch {
+            userDatabase.save(newUser)
+        }
+
+        return newUser
     }
 }
 
@@ -144,6 +166,7 @@ class UserDetailsRepositoryTest {
             delay(loadTime)
             return stored
         }
+
         override suspend fun save(user: UserDetails) {
             delay(saveTime)
             stored = user
