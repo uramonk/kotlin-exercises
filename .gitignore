@@ -42,3 +42,6 @@ bin/
 .DS_Store
 /Crimes_-_2001_to_Present.csv
 /.idea/
+
+### テスト実行用 ###
+MyTest.kt
