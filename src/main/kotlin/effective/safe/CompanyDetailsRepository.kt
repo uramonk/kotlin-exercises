@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import java.math.BigDecimal
-import org.junit.Ignore      
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.time.measureTime
@@ -13,26 +13,31 @@ class CompanyDetailsRepository(
     private val client: CompanyDetailsClient,
     dispatcher: CoroutineDispatcher
 ) {
-    private val details = mutableMapOf<Company, CompanyDetails>()
-
-    suspend fun getDetails(company: Company): CompanyDetails {
-        val current = getDetailsOrNull(company)
-        if (current == null) {
-            val companyDetails = client.fetchDetails(company)
-            details[company] = companyDetails
-            return companyDetails
+    private var details = mapOf<Company, CompanyDetails>()
+    private val dispatcher = dispatcher.limitedParallelism(1)
+    suspend fun getDetails(company: Company): CompanyDetails =
+        withContext(dispatcher) {
+            val current = getDetailsOrNull(company)
+            if (current == null) {
+                val companyDetails = client.fetchDetails(company)
+                details = details + (company to companyDetails)
+                companyDetails
+            } else {
+                current
+            }
         }
-        return current
-    }
 
-    fun getDetailsOrNull(company: Company): CompanyDetails? = 
+
+    suspend fun getDetailsOrNull(company: Company): CompanyDetails? =
         details[company]
 
-    fun getReadyDetails(): Map<Company, CompanyDetails> =
-        details
-    
-    fun clear() {
-        details.clear()
+
+    suspend fun getReadyDetails(): Map<Company, CompanyDetails> =
+        details.toMap()
+
+
+    suspend fun clear() {
+        details = emptyMap()
     }
 }
 
