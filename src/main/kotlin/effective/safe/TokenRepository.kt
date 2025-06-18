@@ -18,11 +18,12 @@ class TokenRepository(
     private val timeProvider: TimeProvider
 ) {
     private var token: Token? = null
-
-    suspend fun getToken(): Token {
+    private val mutex = Mutex()
+    suspend fun getToken(): Token = mutex.withLock {
         val currentToken = token
-        if (currentToken != null && 
-            currentToken.expiration > timeProvider.now()) {
+        if (currentToken != null &&
+            currentToken.expiration > timeProvider.now()
+        ) {
             return currentToken
         }
         val newToken = client.fetchToken()
@@ -34,6 +35,7 @@ class TokenRepository(
         token = null
     }
 }
+
 
 data class Token(val value: String, val expiration: LocalDateTime)
 
@@ -136,7 +138,7 @@ class TokenRepositoryTest {
     }
 
     @Test
-    fun `should provide new token after invalidation`() = runTest { 
+    fun `should provide new token after invalidation`() = runTest {
         // given
         var i = 1
         val timeProvider = object : TimeProvider {
@@ -176,7 +178,7 @@ class TokenRepositoryTest {
         val repository = TokenRepository(client, timeProvider)
 
         // when fetching token
-        val tokenAsync = async { 
+        val tokenAsync = async {
             repository.getToken()
         }
 
