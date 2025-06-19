@@ -56,53 +56,67 @@ class UserDetailsRepositoryTest {
         // given
         val client = object : UserDataClient {
             override suspend fun getName(): String {
-                // TODO
+                delay(100)
                 return "Ben"
             }
-    
+
             override suspend fun getFriends(): List<Friend> {
-                // TODO
+                delay(200)
                 return listOf(Friend("friend-id-1"))
             }
-    
+
             override suspend fun getProfile(): Profile {
-                // TODO
+                delay(300)
                 return Profile("Example description")
             }
         }
         var savedDetails: UserDetails? = null
         val database = object : UserDetailsDatabase {
             override suspend fun load(): UserDetails? {
-                // TODO
+                delay(400)
                 return savedDetails
             }
-    
+
             override suspend fun save(user: UserDetails) {
-                // TODO
+                delay(500)
                 savedDetails = user
             }
         }
-    
-        val repo: UserDetailsRepository = TODO()
-    
+
+        val repo: UserDetailsRepository = UserDetailsRepository(
+            client = client,
+            userDatabase = database,
+            backgroundScope = backgroundScope
+        )
+
         // when
         val details = repo.getUserDetails()
-    
+
         // then data are fetched asynchronously
-        // TODO
-    
+        val expectedDetails = UserDetails(
+            name = "Ben",
+            friends = listOf(Friend("friend-id-1")),
+            profile = Profile("Example description")
+        )
+        assertEquals(expectedDetails, details)
+        assertEquals(700, currentTime)
+        assertEquals(null, savedDetails)
+
         // when all children are finished
-        // TODO
-    
+        backgroundScope.coroutineContext.job.children
+            .forEach { it.join() }
+
         // then data are saved to the database
-        // TODO
-    
+        assertEquals(1200, currentTime)
+        assertEquals(details, savedDetails)
+
         // when getting details again
-        // TODO
-    
+        val details2 = repo.getUserDetails()
+
         // then data are loaded from the database
-        // TODO
+        assertEquals(details, details2)
+        assertEquals(1600, currentTime)
     }
-    
-    
+
+
 }
