@@ -1,7 +1,7 @@
 package coroutines.test.notificationsendertest
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -45,22 +45,106 @@ class NotificationSenderTest {
 
     @Test
     fun `should send notifications concurrently`() {
-        // TODO
+        val testDispatcher = StandardTestDispatcher()
+        val client = FakeNotificationClient(
+            delayTime = 100
+        )
+        val collector = FakeExceptionCollector()
+        val sender = NotificationSender(
+            client = client,
+            exceptionCollector = collector,
+            dispatcher = testDispatcher
+        )
+        val notifications = listOf(
+            Notification("A"),
+            Notification("B"),
+            Notification("C")
+        )
+        sender.sendNotifications(notifications)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(notifications, client.sent)
+        assertEquals(100, testDispatcher.scheduler.currentTime)
+
     }
 
     @Test
     fun `should cancel all coroutines when cancel is called`() {
-        // TODO
+        val testDispatcher = StandardTestDispatcher()
+        val client = FakeNotificationClient(
+            delayTime = 100
+        )
+        val collector = FakeExceptionCollector()
+        val sender = NotificationSender(
+            client = client,
+            exceptionCollector = collector,
+            dispatcher = testDispatcher
+        )
+        val notifications = listOf(
+            Notification("A"),
+            Notification("B"),
+            Notification("C")
+        )
+        sender.sendNotifications(notifications)
+        testDispatcher.scheduler.advanceTimeBy(50)
+        sender.cancel()
+        val childlen = sender.scope.coroutineContext.job.children
+        assert(childlen.all { it.isCancelled })
     }
 
     @Test
     fun `should not cancel other sending processes when one of them fails`() {
-        // TODO
+        val testDispatcher = StandardTestDispatcher()
+        val client = FakeNotificationClient(
+            delayTime = 100,
+            failEvery = 2
+        )
+        val collector = FakeExceptionCollector()
+        val sender = NotificationSender(
+            client = client,
+            exceptionCollector = collector,
+            dispatcher = testDispatcher
+        )
+        val notifications = listOf(
+            Notification("A"),
+            Notification("B"),
+            Notification("C")
+        )
+        sender.sendNotifications(notifications)
+        testDispatcher.scheduler.advanceUntilIdle()
+        val childlen = sender.scope.coroutineContext.job.children
+        childlen.forEachIndexed { index, job ->
+            if (index == 1) {
+                assertEquals(true, job.isCancelled)
+                assertEquals(true, job.isCompleted)
+            } else {
+                assertEquals(false, job.isCancelled)
+                assertEquals(true, job.isCompleted)
+            }
+        }
+        assertEquals(2, client.sent.size)
     }
 
     @Test
     fun `should collect exceptions from all coroutines`() {
-        // TODO
+        val testDispatcher = StandardTestDispatcher()
+        val client = FakeNotificationClient(
+            delayTime = 100,
+            failEvery = 2
+        )
+        val collector = FakeExceptionCollector()
+        val sender = NotificationSender(
+            client = client,
+            exceptionCollector = collector,
+            dispatcher = testDispatcher
+        )
+        val notifications = listOf(
+            Notification("A"),
+            Notification("B"),
+            Notification("C")
+        )
+        sender.sendNotifications(notifications)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, collector.collected.size)
     }
 }
 
