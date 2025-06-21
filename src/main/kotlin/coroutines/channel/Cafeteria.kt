@@ -23,7 +23,18 @@ class Latte(milk: Milk, espresso: Espresso) : Coffee() {
 }
 
 suspend fun main() = coroutineScope {
-    // TODO
+    val orders = Channel<CoffeeType>(Channel.UNLIMITED)
+    val coffees = Channel<Coffee>(Channel.UNLIMITED)
+    serveOrders(orders, coffees, "Alice")
+    serveOrders(orders, coffees, "Bob")
+    serveOrders(orders, coffees, "Celine")
+    serveOrders(orders, coffees, "Dave")
+
+    launch {
+        for (coffee in coffees) {
+            println("Coffee $coffee is ready")
+        }
+    }
 
     println("Welcome to Dream Coffee!")
     println("Press E to get espresso, L to get latte.")
@@ -33,10 +44,22 @@ suspend fun main() = coroutineScope {
             "L" -> CoffeeType.LATTE
             else -> continue
         }
-        // TODO
+        orders.send(type)
         println("Order for $type sent")
     }
 }
+
+fun CoroutineScope.serveOrders(
+    orders: ReceiveChannel<CoffeeType>,
+    servedOrders: SendChannel<Coffee>,
+    baristaName: String
+) = launch {
+    for (order in orders) {
+        val coffee = makeCoffee(order, baristaName)
+        servedOrders.send(coffee)
+    }
+}
+
 
 private suspend fun makeCoffee(order: CoffeeType, baristaName: String): Coffee {
     val groundCoffee = groundCoffee(baristaName)
