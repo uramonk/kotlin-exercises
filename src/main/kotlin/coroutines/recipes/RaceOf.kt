@@ -11,7 +11,16 @@ import kotlin.test.assertEquals
 suspend fun <T> raceOf(
     racer: suspend CoroutineScope.() -> T,
     vararg racers: suspend CoroutineScope.() -> T
-): T = TODO()
+): T = coroutineScope {
+    select {
+        async { racer() }.onAwait { it }
+        racers.forEach {
+            async { it() }.onAwait { it }
+        }
+    }.also {
+        coroutineContext.cancelChildren()
+    }
+}
 
 class RaceOfTest {
 
