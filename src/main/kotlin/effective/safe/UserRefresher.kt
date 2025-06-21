@@ -23,14 +23,20 @@ class UserRefresher(
     private val scope: CoroutineScope,
     private val refreshData: suspend (Int) -> Unit,
 ) {
-    private var refreshJob: Job? = null
+    private val queue = Channel<Int>(Channel.UNLIMITED)
 
-    suspend fun refresh(userId: Int) {
-        refreshJob?.join()
-        refreshJob = scope.launch {
-            refreshData(userId)
+    init {
+        scope.launch {
+            for (userId in queue) {
+                refreshData(userId)
+            }
         }
     }
+
+    suspend fun refresh(userId: Int) {
+        queue.send(userId)
+    }
+
 }
 
 class UserRefresherTest {
@@ -87,7 +93,7 @@ class UserRefresherTest {
                 finished.incrementAndGet()
             }
         )
-  
+
         val sendTime = measureTime {
             coroutineScope {
                 repeat(100) {
@@ -105,5 +111,7 @@ class UserRefresherTest {
 }
 
 suspend fun await(condition: () -> Boolean) {
-    while (!condition()) { delay(1) }
+    while (!condition()) {
+        delay(1)
+    }
 }
