@@ -8,17 +8,39 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.test.assertEquals
 
-val infiniteFlow: Flow<Unit> = TODO()
+val infiniteFlow: Flow<Unit> = flow {
+    while (true) {
+        emit(Unit)
+    }
+}
 
-val neverFlow: Flow<Nothing> = TODO()
+val neverFlow: Flow<Nothing> = flow {
+    suspendCancellableCoroutine { }
+}
 
-fun everyFlow(timeMillis: Long): Flow<Unit> = TODO()
+fun everyFlow(timeMillis: Long): Flow<Unit> = flow {
+    while (true) {
+        delay(timeMillis)
+        emit(Unit)
+    }
+}
 
-fun <T> flowOf(lambda: suspend () -> T): Flow<T> = TODO()
+fun <T> flowOf(lambda: suspend () -> T): Flow<T> = flow {
+    emit(lambda())
+}
 
 fun <T> flowOfFlatten(
     lambda: suspend () -> Flow<T>
-): Flow<T> = TODO()
+): Flow<T> = flow {
+    lambda().collect { emit(it) }
+    // こちらでも良い
+    // emitAll(lambda())
+    // ↓ 実装
+    // public suspend fun <T> FlowCollector<T>.emitAll(flow: Flow<T>) {
+    //   ensureActive()
+    //   flow.collect(this)
+    // }
+}
 
 class FlowUtilsTest {
     @Test
