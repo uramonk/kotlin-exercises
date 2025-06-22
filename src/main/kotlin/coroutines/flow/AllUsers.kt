@@ -8,7 +8,16 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 class AllUsers(private val repository: UserRepository) {
-    fun getAllUsers(): Flow<User> = TODO()
+    fun getAllUsers(): Flow<User> = flow {
+        var page = 0
+        var users: List<User>
+        do {
+            users = repository.fetchUsers(page++)
+            for (user in users) {
+                emit(user)
+            }
+        } while (users.size != 0)
+    }
 }
 
 interface UserRepository {
