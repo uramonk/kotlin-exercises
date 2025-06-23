@@ -18,7 +18,15 @@ class TemperatureService(
         ConcurrentHashMap<String, Fahrenheit>()
 
     fun observeTemperature(city: String): Flow<Fahrenheit> =
-        TODO()
+        temperatureDataSource.observeTemperatureUpdates()
+            .filter { it.city == city }
+            .map { celsiusToFahrenheit(it.temperature) }
+            .onEach { lastKnownTemperature[city] = it }
+            .onStart {
+                lastKnownTemperature[city]?.let {
+                    emit(it)
+                }
+            }
 
     fun getLastKnown(city: String): Fahrenheit? =
         lastKnownTemperature[city]
