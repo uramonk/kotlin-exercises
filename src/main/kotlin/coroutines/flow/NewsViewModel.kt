@@ -1,5 +1,6 @@
 package coroutines.flow.newsviewmodel
 
+import coroutines.cancellation.send
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,19 @@ class NewsViewModel(
     val errors = _errors.receiveAsFlow()
 
     init {
-        // TODO
+        newsRepository.fetchNews()
+            .onStart { _progressVisible.value = true }
+            .onEach { news -> _newsToShow.update { it + news } }
+            .onCompletion { _progressVisible.value = false }
+            //.retry { error -> error is ApiException }
+            .retryWhen { cause, attempt ->
+                if (cause is ApiException) {
+                    return@retryWhen true
+                }
+                false
+            }
+            .catch { _errors.send(it) }
+            .launchIn(viewModelScope)
     }
 }
 
