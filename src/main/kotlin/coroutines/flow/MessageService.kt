@@ -13,15 +13,28 @@ class MessageService(
 ) {
     fun threadsSearch(
         query: Flow<String>
-    ): Flow<MessageThread> = TODO()
+    ): Flow<MessageThread> =
+        query.flatMapLatest {
+            messageRepository.searchThreads(it)
+        }
 
     fun subscribeThreads(
         threads: Flow<MessageThread>
-    ): Flow<MessageThreadUpdate> = TODO()
+    ): Flow<MessageThreadUpdate> =
+    // 非同期
+        // threadsのリストが同時に流れていく
+        threads.flatMapMerge(concurrency = Int.MAX_VALUE) {
+            messageRepository.subscribeThread(it.id)
+        }
 
     fun sendMessages(
         messages: Flow<List<Message>>
-    ): Flow<MessageSendingResponse> = TODO()
+    ): Flow<MessageSendingResponse> =
+    // 同期的
+        // messagesのリストが一つずつ流れていく
+        messages.flatMapConcat {
+            messageRepository.sendMessages(it)
+        }
 }
 
 interface MessageRepository {
