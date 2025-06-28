@@ -3,12 +3,9 @@ package coroutines.flow.productservice
 import coroutines.flow.productservice.TestData.product1
 import coroutines.flow.productservice.TestData.product2
 import coroutines.flow.productservice.TestData.product3
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runCurrent
@@ -23,7 +20,16 @@ class ProductService(
 ) {
     private val activeObservers = AtomicInteger(0)
 
-    fun observeProducts(categories: Set<String>): Flow<Product> = TODO()
+    fun observeProducts(categories: Set<String>): Flow<Product> =
+        productRepository.observeProductUpdates()
+            .distinctUntilChanged()
+            .flatMapMerge(concurrency = Int.MAX_VALUE) {
+                flow { emit(productRepository.fetchProduct(it)) }
+            }
+            .filter { it.category in categories }
+            .onStart { activeObservers.incrementAndGet() }
+            .onCompletion { activeObservers.decrementAndGet() }
+
 
     fun activeObserversCount(): Int = activeObservers.get()
 }
