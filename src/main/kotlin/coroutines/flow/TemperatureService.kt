@@ -16,12 +16,21 @@ class TemperatureService(
 ) {
     private val lastKnownTemperature =
         ConcurrentHashMap<String, Fahrenheit>()
+    private val temperatureUpdates = temperatureDataSource
+        .observeTemperatureUpdates()
+        .map { it.city to celsiusToFahrenheit(it.temperature) }
+        .onEach { (city, temp) ->
+            lastKnownTemperature[city] = temp
+        }
+        .shareIn(
+            scope = backgroundScope,
+            started = SharingStarted.Eagerly,
+        )
 
     fun observeTemperature(city: String): Flow<Fahrenheit> =
-        temperatureDataSource.observeTemperatureUpdates()
-            .filter { it.city == city }
-            .map { celsiusToFahrenheit(it.temperature) }
-            .onEach { lastKnownTemperature[city] = it }
+        temperatureUpdates
+            .filter { (updateCity, _) -> updateCity == city }
+            .map { it.second }
             .onStart {
                 lastKnownTemperature[city]?.let {
                     emit(it)
