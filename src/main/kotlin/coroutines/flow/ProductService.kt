@@ -16,20 +16,25 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class ProductService(
     private val productRepository: ProductRepository,
-    backgroundScope: CoroutineScope,
+    private val backgroundScope: CoroutineScope,
 ) {
     private val activeObservers = AtomicInteger(0)
+    private val updatedProducts = productRepository
+        .observeProductUpdates()
+        .distinctUntilChanged()
+        .flatMapMerge(concurrency = Int.MAX_VALUE) {
+            flow { emit(productRepository.fetchProduct(it)) }
+        }
+        .shareIn(
+            scope = backgroundScope,
+            started = SharingStarted.WhileSubscribed(),
+        )
 
     fun observeProducts(categories: Set<String>): Flow<Product> =
-        productRepository.observeProductUpdates()
-            .distinctUntilChanged()
-            .flatMapMerge(concurrency = Int.MAX_VALUE) {
-                flow { emit(productRepository.fetchProduct(it)) }
-            }
+        updatedProducts
             .filter { it.category in categories }
             .onStart { activeObservers.incrementAndGet() }
             .onCompletion { activeObservers.decrementAndGet() }
-
 
     fun activeObserversCount(): Int = activeObservers.get()
 }
