@@ -2,6 +2,7 @@ package coroutines.flow.newsviewmodelflow
 
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
@@ -16,16 +17,19 @@ class NewsViewModelFlow(
 ) : BaseViewModel() {
     private val _progressVisible = MutableStateFlow(false)
     val progressVisible = _progressVisible.asStateFlow()
-
-    private val _newsToShow = MutableSharedFlow<News>()
-    val newsToShow = _newsToShow.asSharedFlow()
-
-    private val _errors = MutableSharedFlow<Throwable>()
-    val errors = _errors.asSharedFlow()
-
-    init {
-        TODO()
-    }
+    private val _errors = Channel<Throwable>(Channel.UNLIMITED)
+    val errors = _errors.receiveAsFlow()
+    val newsToShow = newsRepository.fetchNews()
+        .retry { error -> error is ApiException }
+        .catch { error -> _errors.send(error) }
+        .onStart { _progressVisible.value = true }
+        .onCompletion { _progressVisible.value = false }
+        .scan(emptyList<News>()) { acc, news -> acc + news }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList<News>()
+        )
 }
 
 class ApiException : Exception()
