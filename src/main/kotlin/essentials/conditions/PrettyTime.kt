@@ -4,7 +4,24 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 fun secondsToPrettyTime(seconds: Int): String {
-    return ""
+    if (seconds < 0) return "Invalid input"
+    if (seconds == 0) return "Now"
+
+    val sec = seconds % 60
+    val min = seconds % (60 * 60) / 60
+    val hour = seconds / 60 / 60
+
+    var result = ""
+    if (hour > 0) {
+        result += "$hour h"
+    }
+    if (min > 0) {
+        result += " $min min"
+    }
+    if (sec > 0) {
+        result += " $sec sec"
+    }
+    return result.trim()
 }
 
 fun main() {
