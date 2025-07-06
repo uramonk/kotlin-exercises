@@ -34,6 +34,9 @@ class FunctionReference {
     // TODO: Implement printNum, triple and produceName properties using function references
     //  to functions from the Kotlin stdlib or from the Name class
     //  See add property for example
+    val printNum: (Int) -> Unit = ::print
+    val triple: (Int) -> Int = 3::times
+    val produceName: (String) -> Name = ::Name
 }
 
 class FunctionMemberReference {
@@ -42,6 +45,10 @@ class FunctionMemberReference {
     // TODO: Implement printNum, triple, produceName and longestOf properties using function references
     //  to functions from the current class
     //  See add property for example
+    val printNum: (Int) -> Unit = this::printNum
+    val triple: (Int) -> Int = this::triple
+    val produceName: (String) -> Name = this::produceName
+    val longestOf: (String, String, String) -> String = this::longestOf
 
     private fun add(num1: Int, num2: Int): Int = num1 + num2
 
@@ -69,6 +76,10 @@ class BoundedFunctionReference {
     // TODO: Implement printNum, triple, produceName and longestOf properties using function references
     //  to functions from the `classic` object
     //  See add property for example
+    val printNum: (Int) -> Unit = classic::printNum
+    val triple: (Int) -> Int = classic::triple
+    val produceName: (String) -> Name = classic::produceName
+    val longestOf: (String, String, String) -> String = classic::longestOf
 }
 
 class ReferencesTest {
@@ -125,7 +136,7 @@ class ReferencesTest {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T: Any> checkPropertyBehavior(
+    private fun <T : Any> checkPropertyBehavior(
         instance: T,
         expectLongestOf: Boolean = true,
     ) {
