@@ -34,6 +34,14 @@ class AnonymousFunctionalTypeSpecified {
     // TODO: Implement printNum, triple, produceName and longestOf properties using anonymous functions
     //  their type should be specified explicitly
     //  See add property for example
+    val printNum: (Int) -> Unit = fun(num) = print(num)
+
+    val triple: (Int) -> Int = fun(num) = num * 3
+
+    val produceName: (String) -> Name = fun(name) = Name(name)
+
+    val longestOf: (String, String, String) -> String =
+        fun(str1, str2, str3) = maxOf(str1, str2, str3, compareBy { it.length })
 }
 
 class AnonymousFunctionalTypeInferred {
@@ -42,6 +50,13 @@ class AnonymousFunctionalTypeInferred {
     // TODO: Implement printNum, triple, produceName and longestOf properties using anonymous functions
     //  their type should be inferred by compiler
     //  See add property for example
+    val printNum = fun(num: Int) = print(num)
+
+    val triple = fun(num: Int) = num * 3
+
+    val produceName = fun(name: String) = Name(name)
+
+    val longestOf = fun(str1: String, str2: String, str3: String) = maxOf(str1, str2, str3, compareBy { it.length })
 }
 
 class LambdaFunctionalTypeSpecified {
@@ -50,6 +65,14 @@ class LambdaFunctionalTypeSpecified {
     // TODO: Implement printNum, triple, produceName and longestOf properties using lambda functions
     //  their type should be specified explicitly
     //  See add property for example
+    val printNum: (Int) -> Unit = { num -> print(num) }
+
+    val triple: (Int) -> Int = { num -> num * 3 }
+
+    val produceName: (String) -> Name = { name -> Name(name) }
+
+    val longestOf: (String, String, String) -> String =
+        { str1, str2, str3 -> maxOf(str1, str2, str3, compareBy { it.length }) }
 }
 
 class LambdaFunctionalTypeInferred {
@@ -58,6 +81,13 @@ class LambdaFunctionalTypeInferred {
     // TODO: Implement printNum, triple, produceName and longestOf properties using lambda functions
     //  their type should be inferred by compiler
     //  See add property for example
+    val printNum = { num: Int -> print(num) }
+
+    val triple = { num: Int -> num * 3 }
+
+    val produceName = { name: String -> Name(name) }
+
+    val longestOf = { str1: String, str2: String, str3: String -> maxOf(str1, str2, str3, compareBy { it.length }) }
 }
 
 class LambdaUsingImplicitParameter {
@@ -66,6 +96,14 @@ class LambdaUsingImplicitParameter {
     // TODO: Implement printNum, triple, produceName and longestOf properties,
     //  just like in LambdaFunctionalTypeSpecified, but this time, whenever possible,
     //  use implicit parameter `it`.
+    val printNum: (Int) -> Unit = { print(it) }
+
+    val triple: (Int) -> Int = { it * 3 }
+
+    val produceName: (String) -> Name = { Name(it) }
+
+    val longestOf: (String, String, String) -> String =
+        { str1, str2, str3 -> maxOf(str1, str2, str3, compareBy { it.length }) }
 }
 
 class FunctionalTest {
@@ -142,7 +180,7 @@ class FunctionalTest {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T: Any> checkPropertyBehavior(
+    private fun <T : Any> checkPropertyBehavior(
         instance: T,
         expectLongestOf: Boolean = true,
     ) {
