@@ -6,6 +6,14 @@ import kotlin.test.assertEquals
 
 class Observable<T>(initial: T) {
     var value: T = initial
+        set(value) {
+            field = value
+            observers.forEach { it(value) }
+        }
+    private val observers = mutableListOf<(T) -> Unit>()
+    fun observe(observer: (T) -> Unit) {
+        observers.add(observer)
+    }
 }
 
 fun main() {
@@ -22,33 +30,33 @@ fun main() {
 
 class ObservableTest {
 
-//    @Test
-//    fun `Observable should notify observers`() {
-//        val observable = Observable(1)
-//        var notified = false
-//        observable.observe { notified = true }
-//        observable.value = 2
-//        assertTrue(notified)
-//    }
-//
-//    @Test
-//    fun `Observable should notify all observers`() {
-//        val observable = Observable(1)
-//        var notified1 = false
-//        var notified2 = false
-//        observable.observe { notified1 = true }
-//        observable.observe { notified2 = true }
-//        observable.value = 2
-//        assertTrue(notified1)
-//        assertTrue(notified2)
-//    }
-//
-//    @Test
-//    fun `Observable should notify observers with new value`() {
-//        val observable = Observable(1)
-//        var value = 0
-//        observable.observe { value = it }
-//        observable.value = 2
-//        assertEquals(2, value)
-//    }
+    @Test
+    fun `Observable should notify observers`() {
+        val observable = Observable(1)
+        var notified = false
+        observable.observe { notified = true }
+        observable.value = 2
+        assertTrue(notified)
+    }
+
+    @Test
+    fun `Observable should notify all observers`() {
+        val observable = Observable(1)
+        var notified1 = false
+        var notified2 = false
+        observable.observe { notified1 = true }
+        observable.observe { notified2 = true }
+        observable.value = 2
+        assertTrue(notified1)
+        assertTrue(notified2)
+    }
+
+    @Test
+    fun `Observable should notify observers with new value`() {
+        val observable = Observable(1)
+        var value = 0
+        observable.observe { value = it }
+        observable.value = 2
+        assertEquals(2, value)
+    }
 }
