@@ -4,18 +4,20 @@ import org.junit.Test
 import kotlin.test.assertEquals
 
 fun <T> List<T>.plusAt(index: Int, element: T): List<T> {
-    TODO()
+    require(index in 0..size)
+    return take(index) + element + drop(index)
 }
 
-fun main() {
-    val list = listOf(1, 2, 3)
-    println(list.plusAt(1, 4)) // [1, 4, 2, 3]
-    println(list.plusAt(0, 5)) // [5, 1, 2, 3]
-    println(list.plusAt(3, 6)) // [1, 2, 3, 6]
-    
-    val list2 = listOf("A", "B", "C")
-    println(list2.plusAt(1, "D")) // [A, D, B, C]
-}
+//fun main() {
+//    val list = listOf(1, 2, 3)
+//    println(list.plusAt(1, 4)) // [1, 4, 2, 3]
+//    println(list.plusAt(0, 5)) // [5, 1, 2, 3]
+//    println(list.plusAt(3, 6)) // [1, 2, 3, 6]
+//
+//    val list2 = listOf("A", "B", "C")
+//    println(list2.plusAt(1, "D")) // [A, D, B, C]
+//}
+
 
 class PlusAtTest {
 
@@ -46,7 +48,7 @@ class PlusAtTest {
     }
 }
 
-inline fun <reified T: Throwable> assertThrows(operation: () -> Unit) {
+inline fun <reified T : Throwable> assertThrows(operation: () -> Unit) {
     val result = runCatching { operation() }
     assert(result.isFailure) { "Operation has not failed with exception" }
     val exception = result.exceptionOrNull()
