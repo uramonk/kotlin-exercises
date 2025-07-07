@@ -10,12 +10,16 @@ data class StudentJson(
     val pointsInSemester: Int
 )
 
-fun List<StudentJson>.getPassingSurnames(): List<String> =
+fun List<StudentJson>.getPassingSurnames2(): List<String> =
     this.filter { it.result >= 50 }
         .filter { it.pointsInSemester >= 15 }
         .map { it.surname }
         .filter { it != null }
         .map { it!! }
+
+fun List<StudentJson>.getPassingSurnames(): List<String> =
+    this.filter { it.result >= 50 && it.pointsInSemester >= 15 }
+        .mapNotNull { it.surname }
 
 class PassingSurnamesTest {
     @Test
