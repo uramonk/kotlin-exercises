@@ -44,4 +44,4 @@ bin/
 /.idea/
 
 ### テスト実行用 ###
-MyTest.kt
+MyTest*.kt
