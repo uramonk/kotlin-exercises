@@ -3,9 +3,35 @@ package functional.collections.beststudents
 import org.junit.Test
 import kotlin.test.assertEquals
 
-fun List<Student>.makeBestStudentsList(): String = TODO()
+fun List<Student>.makeBestStudentsList(): String = this
+    .filter { it.pointsInSemester >= 30 && it.result >= 80 }
+    .sortedByDescending { it.result }
+    .take(10)
+    .withIndex()
+    .map {
+        when {
+            it.index == 0 -> it to 5000
+            it.index <= 3 -> it to 3000
+            else -> it to 1000
+        }
+    }
+    .sortedWith(compareBy({ it.first.value.surname }, { it.first.value.name }))
+    .joinToString(separator = "\n") { "${it.first.value.name} ${it.first.value.surname}, \$${it.second}" }
 
-data class Student(
+fun List<Student>.makeBestStudentsList2(): String = this
+    .filter { it.pointsInSemester >= 30 && it.result >= 80 }
+    .sortedByDescending { it.result }
+    .zip(INTERNSHIPS)
+    .sortedWith(compareBy({ it.first.surname }, { it.first.name }))
+    .joinToString(separator = "\n") { (student, internship) ->
+        "${student.name} ${student.surname}, $$internship"
+    }
+
+private val INTERNSHIPS =
+    List(1) { 5_000 } + List(3) { 3_000 } + List(6) { 1_000 }
+
+
+class Student(
     val name: String,
     val surname: String,
     val result: Double,
@@ -20,27 +46,27 @@ class BestStudentsListTest {
     val studentNotPassingBecauseOfPoints = Student("Michael", "Angelo", 71.0, 12)
 
     val allStudents = listOf(
-            internshipStudent,
-            studentWithTooLowResultToInternship,
-            studentWithNotEnoughPointsForInternship,
-            studentNotPassingBecauseOfResult,
-            Student("Noely", "Peterson", 91.0, 22),
-            studentNotPassingBecauseOfPoints,
-            Student("Noe", "Samson", 41.0, 18),
-            Student("Timothy", "Johnson", 51.0, 15),
-            Student("Noe", "Peterson", 91.0, 22),
-            Student("Ester", "Adams", 81.0, 30),
-            Student("Dior", "Angel", 88.5, 38),
-            Student("Naja", "Marcson", 100.0, 31),
-            Student("Oregon", "Dart", 85.5, 30),
-            Student("Ron", "Peters", 89.0, 31),
-            Student("Harry", "Potter", 80.0, 30),
-            Student("Sansa", "Stark", 49.5, 14),
-            Student("Jamme", "Lannister", 80.0, 30),
-            Student("Alex", "Nolan", 86.0, 33),
-            Student("Jon", "Johnson", 85.1, 31),
-            Student("James", "Johnson", 85.2, 31),
-            Student("Jack", "Johnson", 85.3, 31)
+        internshipStudent,
+        studentWithTooLowResultToInternship,
+        studentWithNotEnoughPointsForInternship,
+        studentNotPassingBecauseOfResult,
+        Student("Noely", "Peterson", 91.0, 22),
+        studentNotPassingBecauseOfPoints,
+        Student("Noe", "Samson", 41.0, 18),
+        Student("Timothy", "Johnson", 51.0, 15),
+        Student("Noe", "Peterson", 91.0, 22),
+        Student("Ester", "Adams", 81.0, 30),
+        Student("Dior", "Angel", 88.5, 38),
+        Student("Naja", "Marcson", 100.0, 31),
+        Student("Oregon", "Dart", 85.5, 30),
+        Student("Ron", "Peters", 89.0, 31),
+        Student("Harry", "Potter", 80.0, 30),
+        Student("Sansa", "Stark", 49.5, 14),
+        Student("Jamme", "Lannister", 80.0, 30),
+        Student("Alex", "Nolan", 86.0, 33),
+        Student("Jon", "Johnson", 85.1, 31),
+        Student("James", "Johnson", 85.2, 31),
+        Student("Jack", "Johnson", 85.3, 31)
     )
 
     @Test
