@@ -3,9 +3,12 @@ package functional.collections.passingstudents
 import org.junit.Test
 import kotlin.test.assertEquals
 
-fun List<Student>.makePassingStudentsList(): String = TODO()
+fun List<Student>.makePassingStudentsList(): String = this
+    .filter { it.pointsInSemester > 15 && it.result >= 50.0 }
+    .sortedWith(compareBy({ it.surname }, { it.name }))
+    .joinToString(separator = "\n") { "${it.name} ${it.surname}, ${it.result}" }
 
-data class Student(
+class Student(
     val name: String,
     val surname: String,
     val result: Double,
@@ -20,27 +23,27 @@ class PassingStudentsListTest {
     val studentNotPassingBecauseOfPoints = Student("Michael", "Angelo", 71.0, 12)
 
     val allStudents = listOf(
-            internshipStudent,
-            studentWithTooLowResultToInternship,
-            studentWithNotEnoughPointsForInternship,
-            studentNotPassingBecauseOfResult,
-            Student("Noely", "Peterson", 91.0, 22),
-            studentNotPassingBecauseOfPoints,
-            Student("Noe", "Samson", 41.0, 18),
-            Student("Timothy", "Johnson", 51.0, 15),
-            Student("Noe", "Peterson", 91.0, 22),
-            Student("Ester", "Adams", 81.0, 30),
-            Student("Dior", "Angel", 88.5, 38),
-            Student("Naja", "Marcson", 100.0, 31),
-            Student("Oregon", "Dart", 85.5, 30),
-            Student("Ron", "Peters", 89.0, 31),
-            Student("Harry", "Potter", 80.0, 30),
-            Student("Sansa", "Stark", 49.5, 14),
-            Student("Jamme", "Lannister", 80.0, 30),
-            Student("Alex", "Nolan", 86.0, 33),
-            Student("Jon", "Johnson", 85.1, 31),
-            Student("James", "Johnson", 85.2, 31),
-            Student("Jack", "Johnson", 85.3, 31)
+        internshipStudent,
+        studentWithTooLowResultToInternship,
+        studentWithNotEnoughPointsForInternship,
+        studentNotPassingBecauseOfResult,
+        Student("Noely", "Peterson", 91.0, 22),
+        studentNotPassingBecauseOfPoints,
+        Student("Noe", "Samson", 41.0, 18),
+        Student("Timothy", "Johnson", 51.0, 15),
+        Student("Noe", "Peterson", 91.0, 22),
+        Student("Ester", "Adams", 81.0, 30),
+        Student("Dior", "Angel", 88.5, 38),
+        Student("Naja", "Marcson", 100.0, 31),
+        Student("Oregon", "Dart", 85.5, 30),
+        Student("Ron", "Peters", 89.0, 31),
+        Student("Harry", "Potter", 80.0, 30),
+        Student("Sansa", "Stark", 49.5, 14),
+        Student("Jamme", "Lannister", 80.0, 30),
+        Student("Alex", "Nolan", 86.0, 33),
+        Student("Jon", "Johnson", 85.1, 31),
+        Student("James", "Johnson", 85.2, 31),
+        Student("Jack", "Johnson", 85.3, 31)
     )
 
     @Test
