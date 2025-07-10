@@ -6,18 +6,22 @@ import kotlin.test.assertEquals
 // Powerset returns set of all subsets including full set and empty set
 // https://en.wikipedia.org/wiki/Power_set
 fun <T> Collection<T>.powerset(): Set<Set<T>> {
-    TODO()
+    if (this.size <= 0) return setOf(setOf())
+    val n = this.first()
+    val list = this.drop(1)
+    val set = list.powerset()
+    return set + set.map { it + n }
 }
 
-fun main() {
-    println(setOf<Int>().powerset()) // [[]]
-    println(setOf("A").powerset()) // [[], [A]]
-    println(setOf('A', 'B').powerset()) // [[], [B], [A], [B, A]]
-    println(setOf(1, 2, 3).powerset())
-    // [[], [3], [2], [3, 2], [1], [3, 1], [2, 1], [3, 2, 1]]
-    println(setOf(1, 2, 3, 4).powerset())
-    // [[], [4], [3], [4, 3], [2], [4, 2], [3, 2], [4, 3, 2], [1], [4, 1], [3, 1], [4, 3, 1], [2, 1], [4, 2, 1], [3, 2, 1], [4, 3, 2, 1]]
-}
+//fun main() {
+//    println(setOf<Int>().powerset()) // [[]]
+//    println(setOf("A").powerset()) // [[], [A]]
+//    println(setOf('A', 'B').powerset()) // [[], [B], [A], [B, A]]
+//    println(setOf(1, 2, 3).powerset())
+//    // [[], [3], [2], [3, 2], [1], [3, 1], [2, 1], [3, 2, 1]]
+//    println(setOf(1, 2, 3, 4).powerset())
+//    // [[], [4], [3], [4, 3], [2], [4, 2], [3, 2], [4, 3, 2], [1], [4, 1], [3, 1], [4, 3, 1], [2, 1], [4, 2, 1], [3, 2, 1], [4, 3, 2, 1]]
+//}
 
 class PowersetTest {
 
@@ -35,21 +39,21 @@ class PowersetTest {
     @Test
     fun `Powerset simple example test`() {
         val set = setOf(
-                setOf(1, 2, 3),
-                setOf(1, 2),
-                setOf(1, 3),
-                setOf(2, 3),
-                setOf(1),
-                setOf(2),
-                setOf(3),
-                setOf()
+            setOf(1, 2, 3),
+            setOf(1, 2),
+            setOf(1, 3),
+            setOf(2, 3),
+            setOf(1),
+            setOf(2),
+            setOf(3),
+            setOf()
         )
         assertEquals(set, setOf(1, 2, 3).powerset())
     }
 
     @Test
     fun `Size of n element set powerset is 2^n`() {
-        for(n in 1..6) {
+        for (n in 1..6) {
             val set = (1..n).toSet()
             val size = 2.pow(n)
             assertEquals(size, set.powerset().size)
