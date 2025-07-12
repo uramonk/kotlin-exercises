@@ -11,37 +11,31 @@ class StudentService(
     private val studentFactory: StudentFactory,
     private val logger: Logger,
 ) {
-    fun addStudent(addStudentRequest: AddStudentRequest):Student?{
-        val student = studentFactory
-            .produceStudent(addStudentRequest)
-            ?: return null
-        studentRepository.addStudent(student)
-        return student
-    }
+    fun addStudent(addStudentRequest: AddStudentRequest): Student? =
+        addStudentRequest
+            .let { studentFactory.produceStudent(it) }
+            ?.also { studentRepository.addStudent(it) }
 
-    fun getStudent(studentId: String): ExposedStudent? {
-        val student = studentRepository.getStudent(studentId)
-            ?: return null
+    fun getStudent(studentId: String): ExposedStudent? =
+        studentRepository.getStudent(studentId)
+            ?.also {
+                logger.log("Student found: $it")
+            }?.let {
+                studentFactory.produceExposed(it)
+            }
 
-        logger.log("Student found: $student")
-        return studentFactory.produceExposed(student)
-    }
-
-    fun getStudents(semester: String): List<ExposedStudent> {
-        val request = produceGetStudentsRequest(semester)
-        val students = studentRepository.getStudents(request)
-        logger.log("${students.size} students in $semester")
-        return students
+    fun getStudents(semester: String): List<ExposedStudent> =
+        produceGetStudentsRequest(semester)
+            .let {
+                studentRepository.getStudents(it)
+            }.also { logger.log("${it.size} students in $semester") }
             .map { studentFactory.produceExposed(it) }
-    }
 
     private fun produceGetStudentsRequest(
         semester: String,
-    ): GetStudentsRequest {
-        val request = GetStudentsRequest()
-        request.expectedSemester = semester
-        request.minResult = 3.0
-        return request
+    ): GetStudentsRequest = GetStudentsRequest().apply {
+        expectedSemester = semester
+        minResult = 3.0
     }
 }
 
