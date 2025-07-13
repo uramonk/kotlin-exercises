@@ -8,14 +8,27 @@ import kotlin.test.assertEquals
 class PetStore(
     private val database: Database,
 ) {
+    context(Logger)
     fun addPet(
         addPetRequest: AddPetRequest,
     ): Pet? {
+        logInfo("Adding pet with name ${addPetRequest.name}")
         return try {
             database.addPet(addPetRequest)
+                .also {
+                    logInfo(
+                        "Added pet with id ${it.id}"
+                    )
+                }
         } catch (e: InsertionConflictException) {
+            logWarning(
+                "There already is pet named$ {addPetRequest.name}"
+            )
             null
         } catch (e: Exception) {
+            logError(
+                "Failed to add pet with name ${addPetRequest.name}"
+            )
             null
         }
     }
@@ -52,8 +65,10 @@ class RandomDatabase : Database {
         when {
             Random.nextBoolean() ->
                 Pet(1234, addPetRequest.name)
+
             Random.nextBoolean() ->
                 throw InsertionConflictException()
+
             else -> throw Exception()
         }
 }
