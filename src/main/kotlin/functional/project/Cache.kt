@@ -15,11 +15,11 @@ class Cache<K, V>(
     }
 
     fun get(key: K): V? = cache[key] ?: load(key)?.also { cache[key] = it }
-    
+
     fun clear() {
         cache.clear()
     }
-    
+
     fun remove(key: K) {
         cache.remove(key)
     }
