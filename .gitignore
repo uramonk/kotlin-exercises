@@ -45,3 +45,4 @@ bin/
 
 ### テスト実行用 ###
 MyTest*.kt
+MyBenchmark*.kt

@@ -6,6 +6,8 @@ plugins {
     kotlin("jvm") version "2.2.0"
     kotlin("plugin.power-assert") version "2.2.0"
     application
+    id("org.jetbrains.kotlinx.benchmark") version "0.4.14"
+    kotlin("plugin.allopen") version "2.0.20"
 }
 
 group = "org.example"
@@ -26,6 +28,7 @@ dependencies {
     implementation("io.ktor:ktor-client-java:3.0.2")
     implementation("io.ktor:ktor-client-websockets:3.0.2")
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-benchmark-runtime:0.4.14")
 }
 
 tasks.withType<KotlinCompile> {
@@ -54,4 +57,14 @@ tasks.withType<JavaCompile>().configureEach {
 
 kotlin {
     jvmToolchain(20)
+}
+
+allOpen {
+    annotation("org.openjdk.jmh.annotations.State")
+}
+
+benchmark {
+    targets {
+        register("main")
+    }
 }
